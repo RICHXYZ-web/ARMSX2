@@ -1,0 +1,29 @@
+name: Build Android APK
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install NDK, CMake, Ninja
+        run: |
+          sdkmanager "ndk;27.2.12479018" "cmake;3.31.6"
+          sudo apt-get update
+          sudo apt-get install -y ninja-build
+      - name: Build universal APK
+        run: |
+          chmod +x tools/build-universal-page-apk.sh
+          ./tools/build-universal-page-apk.sh "${{ runner.temp }}/ARMSX2.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ARMSX2-apk
+          path: ${{ runner.temp }}/ARMSX2.apk
